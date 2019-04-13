@@ -62,6 +62,7 @@ from conans.util.env_reader import get_env
 from conans.util.files import exception_message_safe, mkdir, save_files
 from conans.util.log import configure_logger
 from conans.util.tracer import log_command, log_exception
+from conans.util.md5 import is_md5sum
 
 default_manifest_folder = '.conan_manifests'
 
@@ -463,8 +464,9 @@ class ConanAPIV1(object):
         # FIXME: The "package" parameter name is very bad, it is a list of package_ids
         if package and recipe:
             raise ConanException("recipe parameter cannot be used together with package")
+        if not is_md5sum(checksum):
+            raise ConanException("invalid checksum value")
         # Install packages without settings (fixed ids or all)
-        # FIXME check if checksum is a real checksum
         ref = ConanFileReference.loads(reference)
         if check_valid_ref(ref, allow_pattern=False):
             if package and ref.revision is None:
@@ -1018,7 +1020,8 @@ class ConanAPIV1(object):
     @api_method
     def get_path(self, reference, checksum, package_id=None, path=None, remote_name=None):
         ref = ConanFileReference.loads(reference)
-        #FIXME check is checksum is a real checksum
+        if not is_md5sum(checksum):
+            raise ConanException("invalid checksum value")
         if not path:
             path = "conanfile.py" if not package_id else "conaninfo.txt"
 
