@@ -329,6 +329,7 @@ class Command(object):
         parser = argparse.ArgumentParser(description=self.download.__doc__, prog="conan download")
         parser.add_argument("reference",
                             help='pkg/version@user/channel')
+        parser.add_argument("checksum", help='Checksum for the specified package ID')
         parser.add_argument("-p", "--package", nargs=1, action=Extender,
                             help='Force install specified package ID (ignore settings/options)')
         parser.add_argument("-r", "--remote", help='look in the specified remote server',
@@ -339,7 +340,7 @@ class Command(object):
         args = parser.parse_args(*args)
 
         self._warn_python2()
-        return self._conan.download(reference=args.reference, package=args.package,
+        return self._conan.download(reference=args.reference, checksum=args.checksum, package=args.package,
                                     remote_name=args.remote, recipe=args.recipe)
 
     def install(self, *args):
@@ -1388,6 +1389,7 @@ class Command(object):
                                  'conanfile if only a reference is specified and a conaninfo.txt '
                                  'file contents if the package is also specified',
                             default=None, nargs="?")
+        parser.add_argument("checksum", help='Checksum for the specified file')
         parser.add_argument("-p", "--package", default=None,
                             help="Package ID [DEPRECATED: use full reference instead]",
                             action=OnceArgument)
@@ -1414,7 +1416,7 @@ class Command(object):
                 raise ConanException("Use a full package reference (preferred) or the `--package`"
                                      " command argument, but not both.")
 
-        ret, path = self._conan.get_path(reference, package_id, args.path, args.remote)
+        ret, path = self._conan.get_path(reference, package_id, args.path, args.remote, args.checksum)
         if isinstance(ret, list):
             self._outputer.print_dir_list(ret, path, args.raw)
         else:

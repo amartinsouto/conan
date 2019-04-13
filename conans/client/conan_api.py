@@ -459,11 +459,12 @@ class ConanAPIV1(object):
             raise
 
     @api_method
-    def download(self, reference, remote_name=None, package=None, recipe=False):
+    def download(self, reference, checksum, remote_name=None, package=None, recipe=False):
         # FIXME: The "package" parameter name is very bad, it is a list of package_ids
         if package and recipe:
             raise ConanException("recipe parameter cannot be used together with package")
         # Install packages without settings (fixed ids or all)
+        # FIXME check if checksum is a real checksum
         ref = ConanFileReference.loads(reference)
         if check_valid_ref(ref, allow_pattern=False):
             if package and ref.revision is None:
@@ -1015,8 +1016,9 @@ class ConanAPIV1(object):
         return p
 
     @api_method
-    def get_path(self, reference, package_id=None, path=None, remote_name=None):
+    def get_path(self, reference, checksum, package_id=None, path=None, remote_name=None):
         ref = ConanFileReference.loads(reference)
+        #FIXME check is checksum is a real checksum
         if not path:
             path = "conanfile.py" if not package_id else "conaninfo.txt"
 
