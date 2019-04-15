@@ -21,7 +21,7 @@ from conans.util.log import logger
 from conans.util.tracer import (log_package_download,
                                 log_recipe_download, log_recipe_sources_download,
                                 log_uncompressed_file)
-
+from conans.client.file_copier import FileCopier
 
 class RemoteManager(object):
     """ Will handle the remotes to get recipes, packages etc """
@@ -151,17 +151,12 @@ class RemoteManager(object):
             if not files_cached:
                 zipped_files = self._call_remote(remote, "get_package", pref, dest_folder, cache_folder)
             else:
-                # We always remove dest_folder
-                os.makedirs(dest_folder)
-
-                #FIXME this logic to a new function. Maybe in the same class as call_remote
-                src_files = os.listdir(cache_folder)
                 zipped_files={}
-                for file_name in src_files:
-                    full_file_name = os.path.join(cache_folder, file_name)
-                    if (os.path.isfile(full_file_name)):
-                        shutil.copy(full_file_name, dest_folder)
-                        zipped_files[file_name]=full_file_name.replace('cached','data')
+                copier = FileCopier([cache_folder], dest_folder)
+                files = copier("*", links=True)
+                for file_path in files:
+                    file_name = os.path.basename(file_path)
+                    zipped_files[file_name]=file_path
 
             with self._cache.package_layout(pref.ref).update_metadata() as metadata:
                 metadata.packages[pref.id].revision = pref.revision
