@@ -130,13 +130,40 @@ class RemoteManager(object):
                                    reference=pref.ref, package_id=pref.id, remote=remote)
         output.info("Retrieving package %s from remote '%s' " % (pref.id, remote.name))
         rm_conandir(dest_folder)  # Remove first the destination folder
+
+        #FIXME cache folder from configuration
+        cache_folder = dest_folder.replace('data', 'cached')
+        if not os.path.exists(cache_folder):
+            output.info("No cache available")
+            os.makedirs(cache_folder)
+            files_cached=False
+        else:
+            output.info("Getting packages from cache")
+            files_cached=True
+
         t1 = time.time()
         try:
             pref = self._resolve_latest_pref(pref, remote)
             snapshot = self._call_remote(remote, "get_package_snapshot", pref)
             if not is_package_snapshot_complete(snapshot):
                 raise PackageNotFoundException(pref)
-            zipped_files = self._call_remote(remote, "get_package", pref, dest_folder)
+
+            if not files_cached:
+                #FIXME change _call_remote to accept cache folder
+                zipped_files = self._call_remote(remote, "get_package", pref, dest_folder)
+                cached_files = self._call_remote(remote, "get_package", pref, cache_folder)                
+            else:
+                # We always remove dest_folder
+                os.makedirs(dest_folder)
+
+                #FIXME this logic to a new function. Maybe in the same class as call_remote
+                src_files = os.listdir(cache_folder)
+                zipped_files={}
+                for file_name in src_files:
+                    full_file_name = os.path.join(cache_folder, file_name)
+                    if (os.path.isfile(full_file_name)):
+                        shutil.copy(full_file_name, dest_folder)
+                        zipped_files[file_name]=full_file_name.replace('cached','data')
 
             with self._cache.package_layout(pref.ref).update_metadata() as metadata:
                 metadata.packages[pref.id].revision = pref.revision
