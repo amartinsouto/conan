@@ -16,7 +16,7 @@ from conans.paths import CONANINFO, CONAN_MANIFEST, EXPORT_SOURCES_TGZ_NAME, EXP
     PACKAGE_TGZ_NAME
 from conans.util.files import decode_text
 from conans.util.log import logger
-
+from conans.client.file_copier import FileCopier
 
 def complete_url(base_url, url):
     """ Ensures that an url is absolute by completing relative urls with
@@ -211,10 +211,13 @@ class RestV1Methods(RestCommonMethods):
         urls = self._get_file_to_url_dict(url)
         return urls
 
-    def get_package(self, pref, dest_folder):
+    def get_package(self, pref, dest_folder, cached_folder=None):
         urls = self._get_package_urls(pref)
         check_compressed_files(PACKAGE_TGZ_NAME, urls)
         zipped_files = self._download_files_to_folder(urls, dest_folder)
+        if (cached_folder):
+            copier = FileCopier([dest_folder], cached_folder)
+            copier("*", links=True)
         return zipped_files
 
     def _get_package_urls(self, pref):

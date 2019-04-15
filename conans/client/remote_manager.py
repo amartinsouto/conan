@@ -149,9 +149,7 @@ class RemoteManager(object):
                 raise PackageNotFoundException(pref)
 
             if not files_cached:
-                #FIXME change _call_remote to accept cache folder
-                zipped_files = self._call_remote(remote, "get_package", pref, dest_folder)
-                cached_files = self._call_remote(remote, "get_package", pref, cache_folder)                
+                zipped_files = self._call_remote(remote, "get_package", pref, dest_folder, cache_folder)
             else:
                 # We always remove dest_folder
                 os.makedirs(dest_folder)

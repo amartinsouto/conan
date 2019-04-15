@@ -145,8 +145,8 @@ class ConanApiAuthManager(object):
         return self._rest_client.get_package_manifest(pref)
 
     @input_credentials_if_unauthorized
-    def get_package(self, pref, dest_folder):
-        return self._rest_client.get_package(pref, dest_folder)
+    def get_package(self, pref, dest_folder, cached_folder=None):
+        return self._rest_client.get_package(pref, dest_folder, cached_folder)
 
     @input_credentials_if_unauthorized
     def get_recipe(self, ref, dest_folder):

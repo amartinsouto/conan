@@ -16,7 +16,7 @@ from conans.paths import EXPORT_SOURCES_TGZ_NAME, EXPORT_TGZ_NAME, \
     PACKAGE_TGZ_NAME
 from conans.util.files import decode_text
 from conans.util.log import logger
-
+from conans.client.file_copier import FileCopier
 
 class RestV2Methods(RestCommonMethods):
 
@@ -108,7 +108,7 @@ class RestV2Methods(RestCommonMethods):
         ret = {fn: os.path.join(dest_folder, fn) for fn in files}
         return ret
 
-    def get_package(self, pref, dest_folder):
+    def get_package(self, pref, dest_folder, cached_folder=None):
         url = self.router.package_snapshot(pref)
         data = self._get_file_list_json(url)
         files = data["files"]
@@ -117,6 +117,9 @@ class RestV2Methods(RestCommonMethods):
         urls = {fn: self.router.package_file(pref, fn) for fn in files}
         self._download_and_save_files(urls, dest_folder, files)
         ret = {fn: os.path.join(dest_folder, fn) for fn in files}
+        if (cached_folder):
+            copier = FileCopier([dest_folder], cached_folder)
+            copier("*", links=True)
         return ret
 
     def get_recipe_path(self, ref, path):
