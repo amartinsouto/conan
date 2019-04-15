@@ -144,14 +144,6 @@ class RemoteManager(object):
             if not os.path.exists(cache_folder):
                 output.info("No cache available")
                 zipped_files = self._call_remote(remote, "get_package", pref, dest_folder, cache_folder)
-            else:
-                output.info("Getting packages from cache")
-                zipped_files={}
-                copier = FileCopier([cache_folder], dest_folder)
-                files = copier("*", links=True)
-                for file_path in files:
-                    file_name = os.path.basename(file_path)
-                    zipped_files[file_name]=file_path
 
             with self._cache.package_layout(pref.ref).update_metadata() as metadata:
                 metadata.packages[pref.id].revision = pref.revision
