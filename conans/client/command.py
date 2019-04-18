@@ -605,6 +605,7 @@ class Command(object):
         """
         parser = argparse.ArgumentParser(description=self.source.__doc__, prog="conan source")
         parser.add_argument("path", help=_PATH_HELP)
+        parser.add_argument("checksum", help="checksum of the package sources")
         parser.add_argument("-sf", "--source-folder", action=OnceArgument,
                             help='Destination directory. Defaulted to current directory')
         parser.add_argument("-if", "--install-folder", action=OnceArgument,
@@ -627,7 +628,7 @@ class Command(object):
             pass
 
         self._warn_python2()
-        return self._conan.source(args.path, args.source_folder, args.install_folder)
+        return self._conan.source(args.path, args.checksum, args.source_folder, args.install_folder)
 
     def build(self, *args):
         """Calls your local conanfile.py 'build()' method.

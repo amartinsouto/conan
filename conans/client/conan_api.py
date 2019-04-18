@@ -735,7 +735,7 @@ class ConanAPIV1(object):
                                     local=True, copy_info=True)
 
     @api_method
-    def source(self, path, source_folder=None, info_folder=None, cwd=None):
+    def source(self, path, checksum, source_folder=None, info_folder=None, cwd=None):
         cwd = cwd or get_cwd()
         conanfile_path = _get_conanfile_path(path, cwd, py=True)
         source_folder = _make_abs_path(source_folder, cwd)
@@ -752,7 +752,7 @@ class ConanAPIV1(object):
             conanfile.output.info("Executing exports to: %s" % source_folder)
             export_recipe(conanfile, conanfile_folder, source_folder)
             export_source(conanfile, conanfile_folder, source_folder)
-        config_source_local(source_folder, conanfile, conanfile_path, self._hook_manager)
+        config_source_local(source_folder, conanfile, conanfile_path, checksum, self._hook_manager)
 
     @api_method
     def imports(self, path, dest=None, info_folder=None, cwd=None):
