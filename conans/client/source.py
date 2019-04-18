@@ -3,6 +3,9 @@ import shutil
 
 import six
 
+import zipfile
+import tarfile
+
 from conans.client import tools
 from conans.errors import (ConanException, ConanExceptionInUserConanfileMethod,
                            conanfile_exception_formatter)
@@ -166,14 +169,34 @@ def _run_source(conanfile, conanfile_path, src_folder, hook_manager, checksum, r
 def _get_sources_from_source_cache(src_folder, checksum, output):
     # FIXME source cache folder path should be configured
     cache_source_path = '/home/alex/.conan/src_cache'
-    source_file = cache_source_path + '/' + checksum + '/' + checksum
+    source_file_folder = cache_source_path + '/' + checksum
+    source_file = source_file_folder + '/' + checksum
     if not os.path.exists(source_file):
         output.info("No cache file available")
         return False
+
+    output.info("Getting packages from %s" % (source_file))
+
+    # The file name should be a link to keep the real name
+    # of the source tarball file for better understanding
+    if not os.path.islink(source_file):
+        raise ValueError('Checksum file exists but not a link to real file')
+
+    try:
+        tools.check_md5(source_file, checksum)
+    except ConanException as error:
+        output.info(repr(error))
+        return False
+
+    if tarfile.is_tarfile(source_file):
+        tools.untargz(source_file, src_folder)
+    elif zipfile.is_zipfile(source_file):
+        tools.unzip(source_file, src_folder, output=output)
     else:
-        output.info("Getting packages from %s" % (source_file))
-        #FIXME check what kind of tarball
-        return True
+        print('%s is not an accepted archive file' % (source_file))
+        return False
+    
+    return True
 
 def _get_sources_from_exports(src_folder, export_folder, export_source_folder):
     # so self exported files have precedence over python_requires ones
